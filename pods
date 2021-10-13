@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+from kubernetes import client, config
+
+# Configs can be set in Configuration class directly or using helper utility
+config.load_kube_config()
+
+v1 = client.CoreV1Api()
+print("Listing pods with their IPs:")
+ret = v1.list_pod_for_all_namespaces(watch=False)
+
+num_of_pods = 0
+num_of_containers = 0
+
+for pod in ret.items:
+    num_of_pods += 1
+    ready = 0
+    for container_statuse in pod.status.container_statuses:
+        num_of_containers += 1
+        if container_statuse.ready == True:
+            ready += 1
+
+    print("%d/%d\t%s\t%s" % (ready, len(pod.status.container_statuses),
+          pod.metadata.namespace, pod.metadata.name))
+
+print("      Total number of pods: %d" % num_of_pods)
+print("Total number of containers: %d" % num_of_containers)
+
